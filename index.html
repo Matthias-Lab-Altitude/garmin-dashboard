@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>You vs. You — Trainingsdashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #ffffff;
+    --bg-elevated: #fdf9f7;
+    --card: #ffffff;
+    --card-border: #f0e0d8;
+    --text: #201a1d;
+    --text-muted: #948a8d;
+    --topo: #ff7a45;
+    --pink: #ff4f9a;
+    --pink-light: #ffd7ea;
+    --pink-mid: #ff9dc7;
+    --pink-deep: #c73d7f;
+    --track: #f6e5ec;
+    --line-faint: #f2e0e6;
+    --font-display: 'Barlow Condensed', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html, body{ background: var(--bg); }
+  body{
+    color: var(--text); font-family: var(--font-body); min-height: 100vh; line-height: 1.5;
+    position: relative;
+  }
+
+  #topo-bg{
+    position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1;
+    opacity: 0.32; pointer-events: none;
+  }
+
+  .wrap{ max-width: 1040px; margin: 0 auto; padding: 32px 20px 80px; position: relative; z-index: 1; }
+
+  header{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    margin-bottom: 32px; flex-wrap: wrap; gap: 16px;
+    border-bottom: 1px solid var(--line-faint); padding-bottom: 24px;
+  }
+  .brand{ display:flex; flex-direction:column; gap:4px; }
+  .brand .eyebrow{ font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pink); }
+  .brand h1{ font-family: var(--font-display); font-weight: 700; font-size: 40px; letter-spacing: 0.01em; line-height: 1; color: var(--pink); }
+  .sync-info{ font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); text-align: right; display:flex; flex-direction:column; gap:6px; align-items:flex-end; }
+  .btn{
+    font-family: var(--font-body); font-weight:600; font-size: 13px;
+    background: transparent; color: var(--text); border: 1px solid var(--card-border);
+    padding: 8px 14px; border-radius: 6px; cursor: pointer; transition: all 0.15s ease;
+  }
+  .btn:hover{ border-color: var(--pink); color: var(--pink); }
+  .btn.primary{ background: var(--pink); color: #fff; border: none; }
+  .btn.primary:hover{ opacity: 0.9; color: #fff; }
+
+  #setup{
+    max-width: 560px; margin: 60px auto; background: var(--card);
+    border: 1px solid var(--card-border); border-radius: 12px; padding: 32px;
+    box-shadow: 0 20px 40px -20px rgba(255,79,154,0.15);
+  }
+  #setup h2{ font-family: var(--font-display); font-size: 28px; margin-bottom: 8px; }
+  #setup p{ color: var(--text-muted); font-size: 14px; margin-bottom: 20px; }
+  #setup label{
+    display:block; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 6px; margin-top: 16px;
+  }
+  #setup input{
+    width: 100%; background: var(--bg-elevated); border: 1px solid var(--card-border);
+    color: var(--text); padding: 10px 12px; border-radius: 6px; font-family: var(--font-mono); font-size: 13px;
+  }
+  #setup input:focus{ outline: none; border-color: var(--pink); }
+  #setup .help{ font-size: 12px; color: var(--text-muted); margin-top: 6px; line-height: 1.5; }
+  #setup-error{
+    margin-top: 16px; padding: 10px 12px; background: rgba(255,79,154,0.08);
+    border: 1px solid var(--pink); border-radius: 6px; color: var(--pink-deep); font-size: 13px; display:none;
+  }
+  #setup button{ margin-top: 24px; width: 100%; padding: 12px; }
+
+  /* ---------- Hero: ridge (2/3) + VO2max (1/3) ---------- */
+  .hero-row{ display:grid; grid-template-columns: 2fr 1fr; gap: 14px; margin-bottom: 20px; }
+  @media (max-width: 760px){ .hero-row{ grid-template-columns: 1fr; } }
+
+  .hero{
+    position: relative; background: var(--bg-elevated); border: 1px solid var(--card-border);
+    border-radius: 14px; padding: 24px 24px 0; overflow: hidden;
+  }
+  .hero-top{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 8px; }
+  .hero-label{ font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+  .hero-stat{ text-align:right; }
+  .hero-stat .num{ font-family: var(--font-display); font-size: 38px; font-weight: 700; line-height: 1; color: var(--pink); }
+  .hero-stat .unit{ font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
+  #ridge{ display:block; width: 100%; height: 118px; }
+
+  .vo2-card{
+    background: var(--bg-elevated); border: 1px solid var(--card-border); border-radius: 14px;
+    padding: 24px 24px 0; display:flex; flex-direction:column;
+  }
+  .vo2-top{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 8px; }
+  .vo2-card .label{ font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
+  .vo2-stat{ text-align:right; }
+  .vo2-stat .num{ font-family: var(--font-display); font-size: 30px; font-weight: 700; line-height: 1; color: var(--pink); }
+  .vo2-stat .unit{ font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); }
+  #vo2-curve{ display:block; width: 100%; height: 90px; margin-top: auto; }
+
+  /* ---------- Ring tiles ---------- */
+  .ring-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+  @media (max-width: 760px){ .ring-grid{ grid-template-columns: 1fr; } }
+  .tile{ background: var(--card); border: 1px solid var(--card-border); border-radius: 14px; padding: 20px; display:flex; align-items:center; gap: 16px; }
+  .tile .label{ font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 6px; }
+  .tile .sub-status{ font-size: 13px; color: var(--text); font-weight: 500; }
+  .ring-wrap{ position: relative; width: 88px; height: 88px; flex-shrink: 0; }
+  .ring-wrap svg{ width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ring-track{ fill:none; stroke: var(--track); stroke-width: 9; }
+  .ring-progress{ fill:none; stroke-width: 9; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
+  .ring-center{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .ring-center .pct{ font-family: var(--font-display); font-size: 22px; font-weight: 700; }
+  .ring-center .pct-label{ font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); text-transform: uppercase; }
+
+  /* ---------- Last activity ---------- */
+  .last-activity{ background: var(--card); border: 1px solid var(--card-border); border-radius: 14px; padding: 20px; margin-bottom: 20px; }
+  .last-activity .label{ font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 4px; }
+  .last-activity .name{ font-family: var(--font-display); font-size: 24px; font-weight: 600; margin-bottom: 14px; }
+  .la-stats{ display:grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 640px){ .la-stats{ grid-template-columns: repeat(2, 1fr); } }
+  .la-stats div{ text-align:left; }
+  .la-stats .v{ font-family: var(--font-display); font-size: 22px; font-weight: 600; color: var(--pink); }
+  .la-stats .k{ font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase; }
+
+  /* ---------- Panels ---------- */
+  section.panel{ background: var(--card); border: 1px solid var(--card-border); border-radius: 14px; padding: 22px; margin-bottom: 20px; }
+  section.panel h3{ font-family: var(--font-display); font-size: 22px; font-weight: 600; display:flex; align-items:center; gap:10px; margin-bottom: 18px; }
+  section.panel h3 .dot{ width:8px; height:8px; border-radius:50%; background: var(--pink); }
+
+  /* ---------- Coach notes ---------- */
+  .coach-notes{ font-size: 14px; line-height: 1.7; white-space: pre-wrap; }
+  .coach-notes .meta{ font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-bottom: 12px; }
+
+  /* ---------- Load focus scale ---------- */
+  .focus-row{ margin-bottom: 18px; }
+  .focus-row:last-child{ margin-bottom: 0; }
+  .focus-row .fr-top{ display:flex; justify-content:space-between; font-size: 13px; margin-bottom: 6px; }
+  .focus-row .fr-name{ font-weight: 500; }
+  .focus-row .fr-value{ font-family: var(--font-mono); color: var(--text-muted); }
+  .focus-scale{ position: relative; height: 20px; }
+  .focus-scale-track{ position:absolute; top:8px; left:0; right:0; height: 4px; background: var(--track); border-radius: 4px; }
+  .focus-scale-target{ position:absolute; top:8px; height: 4px; border-radius: 4px; background: rgba(255,79,154,0.20); }
+  .focus-scale-marker{ position:absolute; top:1px; width: 18px; height: 18px; border-radius: 50%; transform: translateX(-50%); border: 3px solid #fff; box-shadow: 0 0 0 1px var(--card-border); background: var(--pink); }
+  .focus-tag{ font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 4px; margin-left: 8px; }
+  .focus-tag.low{ background: rgba(255,157,199,0.25); color: var(--pink-deep); }
+  .focus-tag.high{ background: rgba(255,79,154,0.15); color: var(--pink-deep); }
+  .focus-tag.ok{ background: rgba(255,79,154,0.10); color: var(--pink-deep); }
+  .focus-feedback{ font-size: 13px; color: var(--text-muted); margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line-faint); }
+
+  /* ---------- HR zones ---------- */
+  .zone-row{ display:grid; grid-template-columns: 90px 1fr 60px; gap: 12px; align-items:center; margin-bottom: 12px; font-size: 13px; }
+  .zone-row:last-child{ margin-bottom: 0; }
+  .zone-name{ font-weight: 600; }
+  .zone-range{ font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); display:block; }
+  .zone-bar-track{ height: 16px; background: var(--track); border-radius: 8px; overflow: hidden; }
+  .zone-bar-fill{ height: 100%; border-radius: 8px; }
+  .zone-pct{ font-family: var(--font-mono); text-align:right; color: var(--text-muted); }
+  .zone-note{ font-size: 12px; color: var(--text-muted); margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line-faint); }
+
+  /* ---------- Activity list ---------- */
+  .activity-row{ display:grid; grid-template-columns: 90px 1fr auto auto auto; gap: 16px; align-items:center; padding: 12px 0; border-bottom: 1px solid var(--line-faint); font-size: 14px; }
+  .activity-row:last-child{ border-bottom: none; }
+  .activity-row .date{ font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
+  .activity-row .name{ font-weight: 500; }
+  .activity-row .type{ font-family: var(--font-mono); font-size: 11px; color: var(--pink); text-transform: uppercase; letter-spacing: 0.04em; }
+  .activity-row .metric{ font-family: var(--font-mono); font-size: 13px; color: var(--text-muted); text-align:right; }
+  .empty-state{ padding: 30px 0; text-align:center; color: var(--text-muted); font-size: 14px; }
+
+  /* ---------- Goals ---------- */
+  textarea#goals{
+    width: 100%; min-height: 110px; background: var(--bg-elevated); border: 1px solid var(--card-border);
+    border-radius: 8px; color: var(--text); font-family: var(--font-body); font-size: 14px; padding: 14px;
+    resize: vertical; margin-bottom: 14px;
+  }
+  textarea#goals:focus{ outline:none; border-color: var(--pink); }
+  .goals-footer{ display:flex; justify-content:space-between; align-items:center; }
+  .goals-hint{ font-size: 12px; color: var(--text-muted); max-width: 60%; }
+  #goals-saved{ font-family: var(--font-mono); font-size: 11px; color: var(--pink); opacity: 0; transition: opacity 0.3s; }
+
+  footer{ text-align:center; color: var(--text-muted); font-size: 12px; margin-top: 40px; font-family: var(--font-mono); }
+</style>
+</head>
+<body>
+
+<svg id="topo-bg" viewBox="0 0 1200 1600" preserveAspectRatio="xMidYMin slice" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <path id="blob" d="M0,-100 C55,-98 100,-58 98,-8 C96,42 60,98 5,100 C-48,102 -100,55 -99,2 C-98,-52 -55,-100 0,-100 Z"/>
+  </defs>
+  <g fill="none" stroke="#ff7a45" stroke-width="1.6">
+    <!-- Cluster 1 -->
+    <g transform="translate(180,180)">
+      <use href="#blob" transform="scale(1.9,1.5) rotate(8)"/>
+      <use href="#blob" transform="scale(1.55,1.22) rotate(4) translate(6,4)"/>
+      <use href="#blob" transform="scale(1.2,0.95) rotate(-3) translate(10,6)"/>
+      <use href="#blob" transform="scale(0.85,0.68) rotate(6) translate(12,10)"/>
+      <use href="#blob" transform="scale(0.5,0.4) rotate(-4) translate(14,12)"/>
+    </g>
+    <!-- Cluster 2 -->
+    <g transform="translate(760,90)">
+      <use href="#blob" transform="scale(1.6,2.0) rotate(-12)"/>
+      <use href="#blob" transform="scale(1.28,1.6) rotate(-6) translate(-4,8)"/>
+      <use href="#blob" transform="scale(0.95,1.2) rotate(4) translate(-8,14)"/>
+      <use href="#blob" transform="scale(0.6,0.78) rotate(-2) translate(-10,18)"/>
+    </g>
+    <!-- Cluster 3 -->
+    <g transform="translate(1020,420)">
+      <use href="#blob" transform="scale(1.4,1.1) rotate(20)"/>
+      <use href="#blob" transform="scale(1.1,0.86) rotate(14) translate(-8,4)"/>
+      <use href="#blob" transform="scale(0.78,0.6) rotate(10) translate(-12,8)"/>
+      <use href="#blob" transform="scale(0.45,0.34) rotate(6) translate(-14,10)"/>
+    </g>
+    <!-- Cluster 4 -->
+    <g transform="translate(340,560)">
+      <use href="#blob" transform="scale(2.1,1.7) rotate(-8)"/>
+      <use href="#blob" transform="scale(1.7,1.38) rotate(-4) translate(10,-6)"/>
+      <use href="#blob" transform="scale(1.3,1.05) rotate(2) translate(18,-10)"/>
+      <use href="#blob" transform="scale(0.9,0.72) rotate(-3) translate(24,-14)"/>
+      <use href="#blob" transform="scale(0.5,0.4) rotate(4) translate(28,-16)"/>
+    </g>
+    <!-- Cluster 5 -->
+    <g transform="translate(920,780)">
+      <use href="#blob" transform="scale(1.7,1.4) rotate(15)"/>
+      <use href="#blob" transform="scale(1.35,1.1) rotate(9) translate(-6,6)"/>
+      <use href="#blob" transform="scale(1.0,0.8) rotate(4) translate(-10,10)"/>
+      <use href="#blob" transform="scale(0.62,0.5) rotate(-2) translate(-12,14)"/>
+    </g>
+    <!-- Cluster 6 -->
+    <g transform="translate(150,980)">
+      <use href="#blob" transform="scale(1.5,1.9) rotate(-18)"/>
+      <use href="#blob" transform="scale(1.2,1.52) rotate(-10) translate(8,-4)"/>
+      <use href="#blob" transform="scale(0.86,1.1) rotate(-5) translate(14,-8)"/>
+      <use href="#blob" transform="scale(0.5,0.64) rotate(2) translate(18,-10)"/>
+    </g>
+    <!-- Cluster 7 -->
+    <g transform="translate(650,1180)">
+      <use href="#blob" transform="scale(2.0,1.5) rotate(6)"/>
+      <use href="#blob" transform="scale(1.6,1.2) rotate(3) translate(-8,6)"/>
+      <use href="#blob" transform="scale(1.2,0.9) rotate(-2) translate(-14,10)"/>
+      <use href="#blob" transform="scale(0.78,0.58) rotate(4) translate(-18,14)"/>
+      <use href="#blob" transform="scale(0.42,0.32) rotate(-3) translate(-20,16)"/>
+    </g>
+    <!-- Cluster 8 -->
+    <g transform="translate(1050,1380)">
+      <use href="#blob" transform="scale(1.5,1.3) rotate(-14)"/>
+      <use href="#blob" transform="scale(1.18,1.02) rotate(-8) translate(6,4)"/>
+      <use href="#blob" transform="scale(0.84,0.72) rotate(-3) translate(10,8)"/>
+      <use href="#blob" transform="scale(0.48,0.4) rotate(2) translate(12,10)"/>
+    </g>
+    <!-- Verbindende Streulinien zwischen den Clustern -->
+    <path d="M-50,340 C150,300 300,380 480,330 C650,285 780,350 950,300 C1080,265 1180,310 1280,290"/>
+    <path d="M-50,700 C130,660 280,740 460,690 C630,645 760,710 930,660 C1060,625 1160,670 1280,650"/>
+    <path d="M-50,1050 C140,1010 290,1090 470,1040 C640,995 770,1060 940,1010 C1070,975 1170,1020 1280,1000"/>
+    <path d="M-50,1480 C140,1440 300,1520 480,1470 C650,1425 780,1490 950,1440 C1080,1405 1180,1450 1280,1430"/>
+  </g>
+</svg>
+
+<div class="wrap">
+
+  <div id="setup">
+    <h2>Dashboard verbinden</h2>
+    <p>Einmalig einrichten, dann merkt sich dieser Browser die Verbindung zu deinem GitHub-Repository.</p>
+    <label for="owner">GitHub-Benutzername</label>
+    <input id="owner" type="text" placeholder="z. B. Matthias-Lab-Altitude">
+    <label for="repo">Repository-Name</label>
+    <input id="repo" type="text" placeholder="z. B. Garmin-Coach">
+    <label for="token">Persönliches Zugriffs-Token</label>
+    <input id="token" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+    <div class="help">Das Token wird nur in diesem Browser gespeichert, niemals an mich oder Dritte geschickt.</div>
+    <div id="setup-error"></div>
+    <button class="btn primary" onclick="saveSetup()">Verbinden</button>
+  </div>
+
+  <div id="dashboard" style="display:none;">
+    <header>
+      <div class="brand">
+        <span class="eyebrow">Trainingsdashboard</span>
+        <h1>You vs. You</h1>
+      </div>
+      <div class="sync-info">
+        <span id="last-sync">Noch nicht synchronisiert</span>
+        <div style="display:flex; gap:8px;">
+          <button class="btn" onclick="loadData()">Aktualisieren</button>
+          <button class="btn" onclick="resetSetup()">Verbindung trennen</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="hero-row">
+      <div class="hero">
+        <div class="hero-top">
+          <span class="hero-label">Wochenverlauf — Trainingsumfang (km)</span>
+          <div class="hero-stat">
+            <div class="num" id="hero-total">—</div>
+            <div class="unit">km diese woche</div>
+          </div>
+        </div>
+        <svg id="ridge" viewBox="0 0 1000 118" preserveAspectRatio="none"></svg>
+      </div>
+      <div class="vo2-card">
+        <div class="vo2-top">
+          <span class="label">VO2max</span>
+          <div class="vo2-stat">
+            <div class="num" id="vo2-val">—</div>
+            <div class="unit">ml/kg/min</div>
+          </div>
+        </div>
+        <svg id="vo2-curve" viewBox="0 0 320 118" preserveAspectRatio="none"></svg>
+      </div>
+    </div>
+
+    <div class="ring-grid">
+      <div class="tile">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 100 100">
+            <circle class="ring-track" cx="50" cy="50" r="42"></circle>
+            <circle id="ring-load" class="ring-progress" cx="50" cy="50" r="42"></circle>
+          </svg>
+          <div class="ring-center"><span class="pct" id="load-pct">—</span><span class="pct-label">ratio</span></div>
+        </div>
+        <div><div class="label">Belastung akut : chronisch</div><div class="sub-status" id="load-status">—</div></div>
+      </div>
+      <div class="tile">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 100 100">
+            <circle class="ring-track" cx="50" cy="50" r="42"></circle>
+            <circle id="ring-hrv" class="ring-progress" cx="50" cy="50" r="42"></circle>
+          </svg>
+          <div class="ring-center"><span class="pct" id="hrv-pct">—</span><span class="pct-label">ms</span></div>
+        </div>
+        <div><div class="label">HRV — Ø letzte 7 Tage</div><div class="sub-status" id="hrv-status">—</div></div>
+      </div>
+      <div class="tile">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 100 100">
+            <circle class="ring-track" cx="50" cy="50" r="42"></circle>
+            <circle id="ring-readiness" class="ring-progress" cx="50" cy="50" r="42"></circle>
+          </svg>
+          <div class="ring-center"><span class="pct" id="readiness-pct">—</span><span class="pct-label">bereit</span></div>
+        </div>
+        <div><div class="label">Trainingsbereitschaft</div><div class="sub-status" id="readiness-status">—</div></div>
+      </div>
+    </div>
+
+    <div class="last-activity">
+      <div class="label">Letzte Aktivität</div>
+      <div class="name" id="la-name">—</div>
+      <div class="la-stats">
+        <div><div class="v" id="la-distance">—</div><div class="k">Strecke</div></div>
+        <div><div class="v" id="la-pace">—</div><div class="k">Ø Pace</div></div>
+        <div><div class="v" id="la-elevation">—</div><div class="k">Höhenmeter</div></div>
+        <div><div class="v" id="la-hr">—</div><div class="k">Ø Herzfrequenz</div></div>
+      </div>
+    </div>
+
+    <section class="panel">
+      <h3><span class="dot"></span>Coach-Feedback</h3>
+      <div id="coach-notes-content"></div>
+    </section>
+
+    <section class="panel">
+      <h3><span class="dot"></span>Belastungsfokus</h3>
+      <div id="focus-content"></div>
+    </section>
+
+    <section class="panel">
+      <h3><span class="dot"></span>Herzfrequenz-Zonen</h3>
+      <div id="zone-content"></div>
+    </section>
+
+    <section class="panel">
+      <h3><span class="dot"></span>Letzte Aktivitäten</h3>
+      <div id="activity-list"></div>
+    </section>
+
+    <section class="panel">
+      <h3><span class="dot"></span>Ziele &amp; Notizen</h3>
+      <textarea id="goals" placeholder="z. B. Ziel: 10 km unter 55 Min. bis Oktober. Aktuell: Trainingspause wegen Knie bis 28.07.&#10;&#10;Diese Notizen sind nur lokal in diesem Browser gespeichert — für die eigentliche Coaching-Einschätzung bring sie in den Chat mit Claude mit."></textarea>
+      <div class="goals-footer">
+        <span class="goals-hint">Nur auf diesem Gerät gespeichert. Bring diese Notizen in den Chat, damit dein Plan darauf abgestimmt wird.</span>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span id="goals-saved">Gespeichert</span>
+          <button class="btn" onclick="saveGoals()">Notizen speichern</button>
+        </div>
+      </div>
+    </section>
+
+    <footer>Deine Daten bleiben in deinem privaten GitHub-Repo — dieses Dashboard liest sie nur aus.</footer>
+  </div>
+</div>
+
+<script>
+  const LS_KEYS = { owner: 'ac_owner', repo: 'ac_repo', token: 'ac_token', goals: 'ac_goals' };
+  const RING_CIRC = 2 * Math.PI * 42;
+
+  function saveSetup(){
+    const owner = document.getElementById('owner').value.trim();
+    const repo = document.getElementById('repo').value.trim();
+    const token = document.getElementById('token').value.trim();
+    const errBox = document.getElementById('setup-error');
+    errBox.style.display = 'none';
+    if(!owner || !repo || !token){ errBox.textContent = 'Bitte alle drei Felder ausfüllen.'; errBox.style.display = 'block'; return; }
+    localStorage.setItem(LS_KEYS.owner, owner);
+    localStorage.setItem(LS_KEYS.repo, repo);
+    localStorage.setItem(LS_KEYS.token, token);
+    showDashboard();
+  }
+
+  function resetSetup(){
+    if(!confirm('Verbindung wirklich trennen?')) return;
+    localStorage.removeItem(LS_KEYS.owner);
+    localStorage.removeItem(LS_KEYS.repo);
+    localStorage.removeItem(LS_KEYS.token);
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('setup').style.display = 'block';
+  }
+
+  function showDashboard(){
+    document.getElementById('setup').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    const savedGoals = localStorage.getItem(LS_KEYS.goals);
+    if(savedGoals) document.getElementById('goals').value = savedGoals;
+    loadData();
+  }
+
+  function saveGoals(){
+    localStorage.setItem(LS_KEYS.goals, document.getElementById('goals').value);
+    const badge = document.getElementById('goals-saved');
+    badge.style.opacity = 1;
+    setTimeout(() => badge.style.opacity = 0, 1800);
+  }
+
+  async function fetchJsonFromRepo(owner, repo, token, path){
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
+    });
+    if(!res.ok){
+      if(res.status === 401 || res.status === 403) throw new Error('Zugriff verweigert — prüfe dein Token.');
+      if(res.status === 404) return null;
+      throw new Error('Unerwartete Antwort von GitHub (Status ' + res.status + ').');
+    }
+    const meta = await res.json();
+    const decoded = decodeURIComponent(escape(atob(meta.content.replace(/\n/g, ''))));
+    return JSON.parse(decoded);
+  }
+
+  async function fetchTextFromRepo(owner, repo, token, path){
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
+    });
+    if(!res.ok) return null;
+    const meta = await res.json();
+    return decodeURIComponent(escape(atob(meta.content.replace(/\n/g, ''))));
+  }
+
+  async function loadData(){
+    const owner = localStorage.getItem(LS_KEYS.owner);
+    const repo = localStorage.getItem(LS_KEYS.repo);
+    const token = localStorage.getItem(LS_KEYS.token);
+    if(!owner || !repo || !token) return;
+    document.getElementById('last-sync').textContent = 'Synchronisiere…';
+    try{
+      const activities = await fetchJsonFromRepo(owner, repo, token, 'data/activities.json') || [];
+      const status = await fetchJsonFromRepo(owner, repo, token, 'data/status.json') || {};
+      const health = await fetchJsonFromRepo(owner, repo, token, 'data/health.json') || [];
+      const vo2History = await fetchJsonFromRepo(owner, repo, token, 'data/vo2max_history.json') || [];
+      const coachNotes = await fetchTextFromRepo(owner, repo, token, 'data/coaching-notes.md');
+
+      renderActivities(activities);
+      renderStatus(status);
+      renderZones(activities, health);
+      renderLoadRatio(activities);
+      renderVo2Curve(vo2History, status);
+      renderCoachNotes(coachNotes);
+
+      document.getElementById('last-sync').textContent = 'Zuletzt synchronisiert: ' + new Date().toLocaleString('de-DE');
+    } catch(err){
+      document.getElementById('last-sync').textContent = 'Fehler beim Laden';
+      document.getElementById('activity-list').innerHTML = `<div class="empty-state">⚠️ ${err.message}</div>`;
+    }
+  }
+
+  function renderVo2Curve(history, status){
+    const svg = document.getElementById('vo2-curve');
+    let points = (history || [])
+      .filter(h => h.value != null)
+      .sort((a,b) => new Date(a.date) - new Date(b.date));
+
+    // Falls noch keine Historie existiert, wenigstens den aktuellen Wert als Punkt zeigen
+    if(points.length === 0 && status && status.vo2max && status.vo2max.value != null){
+      points = [{ date: new Date().toISOString(), value: status.vo2max.value }];
+    }
+    if(points.length === 0){
+      svg.innerHTML = `<text x="10" y="60" font-family="JetBrains Mono" font-size="11" fill="#948a8d">Noch keine Verlaufsdaten</text>`;
+      return;
+    }
+
+    const values = points.map(p => p.value);
+    const min = Math.min(...values), max = Math.max(...values);
+    const pad = (max - min) * 0.2 || 2;
+    const lo = min - pad, hi = max + pad;
+    const w = 320, h = 90;
+    const stepX = points.length > 1 ? w / (points.length - 1) : 0;
+    const coords = points.map((p, i) => {
+      const x = points.length > 1 ? i * stepX : w - 4;
+      const y = h - ((p.value - lo) / (hi - lo)) * h;
+      return [x, y];
+    });
+
+    let linePath = `M${coords[0][0]},${coords[0][1]} `;
+    for(let i = 1; i < coords.length; i++){
+      const [x0,y0] = coords[i-1], [x1,y1] = coords[i];
+      const mx = (x0+x1)/2;
+      linePath += `Q${x0},${y0} ${mx},${(y0+y1)/2} `;
+    }
+    if(coords.length > 1) linePath += `L${coords[coords.length-1][0]},${coords[coords.length-1][1]} `;
+
+    let fillPath = linePath + `L${w},${h} L0,${h} Z`;
+
+    svg.innerHTML = `
+      <defs>
+        <linearGradient id="vo2Fill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ff4f9a" stop-opacity="0.30"/>
+          <stop offset="100%" stop-color="#ff4f9a" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d="${fillPath}" fill="url(#vo2Fill)" stroke="none"/>
+      <path d="${linePath}" fill="none" stroke="#ff4f9a" stroke-width="2.5"/>
+      <circle cx="${coords[coords.length-1][0]}" cy="${coords[coords.length-1][1]}" r="4" fill="#ff4f9a"/>
+    `;
+  }
+
+  function setRing(circleEl, value, max, color){
+    const pct = Math.max(0, Math.min(1, (value || 0) / max));
+    circleEl.style.strokeDasharray = RING_CIRC;
+    circleEl.style.strokeDashoffset = RING_CIRC * (1 - pct);
+    if(color) circleEl.style.stroke = color;
+  }
+
+  function renderCoachNotes(text){
+    const el = document.getElementById('coach-notes-content');
+    if(!text){
+      el.innerHTML = '<div class="empty-state">Noch kein Coach-Feedback per Mail empfangen. Schreib "Review" im Chat mit Claude — der Entwurf landet automatisch in deinem Postfach, sobald du ihn abschickst erscheint er hier ab dem nächsten täglichen Lauf.</div>';
+      return;
+    }
+    el.innerHTML = `<div class="coach-notes">${text.replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}</div>`;
+  }
+
+  function renderStatus(status){
+    const readiness = status.training_readiness || {};
+    const rScore = readiness.score;
+    document.getElementById('readiness-pct').textContent = rScore != null ? rScore : '—';
+    document.getElementById('readiness-status').textContent = readiness.level || (rScore == null ? 'Keine Daten' : '');
+    const ringR = document.getElementById('ring-readiness');
+    if(rScore != null){ setRing(ringR, rScore, 100, 'var(--pink)'); }
+    else { ringR.style.strokeDasharray = RING_CIRC; ringR.style.strokeDashoffset = RING_CIRC; ringR.style.stroke = 'var(--track)'; }
+
+    const hrv = status.hrv || {};
+    document.getElementById('hrv-pct').textContent = hrv.weekly_avg != null ? hrv.weekly_avg : '—';
+    document.getElementById('hrv-status').textContent = hrv.status || 'Keine Daten';
+    const ringH = document.getElementById('ring-hrv');
+    if(hrv.weekly_avg != null){ setRing(ringH, hrv.weekly_avg, 120, 'var(--pink)'); }
+    else { ringH.style.strokeDasharray = RING_CIRC; ringH.style.strokeDashoffset = RING_CIRC; ringH.style.stroke = 'var(--track)'; }
+
+    const vo2 = status.vo2max || {};
+    document.getElementById('vo2-val').textContent = vo2.value != null ? vo2.value : '—';
+
+    const focus = status.training_load_focus || {};
+    const focusEl = document.getElementById('focus-content');
+    const rows = [
+      { name: 'Aerobe Basis', d: focus.aerobic_low },
+      { name: 'Hochaerob', d: focus.aerobic_high },
+      { name: 'Anaerob', d: focus.anaerobic },
+    ];
+    const hasData = rows.some(r => r.d && r.d.value != null);
+    if(focus.error || !hasData){
+      focusEl.innerHTML = '<div class="empty-state">Noch keine Belastungsdaten verfügbar.</div>';
+    } else {
+      focusEl.innerHTML = rows.map(r => {
+        const { value, target_min, target_max } = r.d || {};
+        if(value == null || target_min == null || target_max == null){
+          return `<div class="focus-row"><div class="fr-top"><span class="fr-name">${r.name}</span><span class="fr-value">—</span></div></div>`;
+        }
+        const scaleMax = Math.max(target_max * 1.3, value * 1.1);
+        const targetLeft = (target_min / scaleMax) * 100;
+        const targetWidth = ((target_max - target_min) / scaleMax) * 100;
+        const markerLeft = Math.min(100, (value / scaleMax) * 100);
+        let tag = '<span class="focus-tag ok">Im Zielbereich</span>';
+        if(value < target_min) tag = '<span class="focus-tag low">Zu wenig</span>';
+        else if(value > target_max) tag = '<span class="focus-tag high">Zu viel</span>';
+        return `
+          <div class="focus-row">
+            <div class="fr-top">
+              <span class="fr-name">${r.name}${tag}</span>
+              <span class="fr-value">${Math.round(value)} <span style="opacity:0.6">(Ziel ${target_min}–${target_max})</span></span>
+            </div>
+            <div class="focus-scale">
+              <div class="focus-scale-track"></div>
+              <div class="focus-scale-target" style="left:${targetLeft}%; width:${targetWidth}%;"></div>
+              <div class="focus-scale-marker" style="left:${markerLeft}%;"></div>
+            </div>
+          </div>`;
+      }).join('') + (focus.focus_feedback ? `<div class="focus-feedback">${focus.focus_feedback}</div>` : '');
+    }
+  }
+
+  // Gemeinsame Zonenberechnung (Karvonen), wiederverwendet für HF-Zonen und Belastungsratio
+  function calcZoneModel(activities, health){
+    const restingValues = (health || []).map(h => h.resting_hr).filter(v => v != null);
+    const restingHr = restingValues.length ? restingValues.reduce((a,b)=>a+b,0) / restingValues.length : null;
+    const maxValues = (activities || []).map(a => a.max_hr).filter(v => v != null);
+    const maxHr = maxValues.length ? Math.max(...maxValues) : null;
+    if(!restingHr || !maxHr) return null;
+    const hrr = maxHr - restingHr;
+    const bound = pct => Math.round(restingHr + hrr * pct);
+    const zones = [
+      { name: 'Zone 1', range: [bound(0.5), bound(0.6)], color: 'var(--pink-light)' },
+      { name: 'Zone 2', range: [bound(0.6), bound(0.7)], color: 'var(--pink-mid)' },
+      { name: 'Zone 3', range: [bound(0.7), bound(0.8)], color: 'var(--pink)' },
+      { name: 'Zone 4', range: [bound(0.8), bound(0.9)], color: '#e0357f' },
+      { name: 'Zone 5', range: [bound(0.9), maxHr], color: 'var(--pink-deep)' },
+    ];
+    return { restingHr, maxHr, zones };
+  }
+
+  function zoneIndexForHr(zones, hr){
+    let idx = zones.findIndex(z => hr >= z.range[0] && hr < z.range[1]);
+    if(idx === -1) idx = hr >= zones[4].range[0] ? 4 : 0;
+    return idx;
+  }
+
+  function renderZones(activities, health){
+    const zoneEl = document.getElementById('zone-content');
+    const model = calcZoneModel(activities, health);
+    if(!model){
+      zoneEl.innerHTML = '<div class="empty-state">Für die Zonenberechnung fehlen noch Ruhepuls- oder Maxpuls-Daten.</div>';
+      return;
+    }
+    const { restingHr, maxHr, zones } = model;
+    const zoneMinutes = [0,0,0,0,0];
+    let totalMinutes = 0;
+    (activities || []).forEach(a => {
+      if(a.avg_hr == null || !a.duration_min) return;
+      zoneMinutes[zoneIndexForHr(zones, a.avg_hr)] += a.duration_min;
+      totalMinutes += a.duration_min;
+    });
+    if(totalMinutes === 0){
+      zoneEl.innerHTML = '<div class="empty-state">Noch keine Aktivitäten mit Pulsdaten für die Zonenberechnung.</div>';
+      return;
+    }
+    zoneEl.innerHTML = zones.map((z, i) => {
+      const pct = Math.round((zoneMinutes[i] / totalMinutes) * 100);
+      return `
+        <div class="zone-row">
+          <div><span class="zone-name">${z.name}</span><span class="zone-range">${z.range[0]}–${z.range[1]} bpm</span></div>
+          <div class="zone-bar-track"><div class="zone-bar-fill" style="width:${pct}%; background:${z.color};"></div></div>
+          <div class="zone-pct">${pct}%</div>
+        </div>`;
+    }).join('') + `<div class="zone-note">Berechnet aus Ø-Ruhepuls (${Math.round(restingHr)} bpm) und höchstem beobachteten Puls (${maxHr} bpm) nach der Karvonen-Formel. Basiert auf dem Ø-Puls je Aktivität, nicht auf sekundengenauen Daten.</div>`;
+  }
+
+  function renderLoadRatio(activities){
+    const ringL = document.getElementById('ring-load');
+    const pctEl = document.getElementById('load-pct');
+    const statusEl = document.getElementById('load-status');
+
+    const withHr = (activities || []).filter(a => a.avg_hr != null && a.duration_min);
+    if(withHr.length < 3){
+      pctEl.textContent = '—'; statusEl.textContent = 'Noch nicht genug Daten';
+      ringL.style.strokeDasharray = RING_CIRC; ringL.style.strokeDashoffset = RING_CIRC; ringL.style.stroke = 'var(--track)';
+      return;
+    }
+    // Grobe Zonen-Schätzung nur aus Aktivitäten (ohne Gesundheitsdaten) für die Lastberechnung
+    const maxHr = Math.max(...withHr.map(a => a.max_hr || a.avg_hr));
+    const restingApprox = Math.min(...withHr.map(a => a.avg_hr)) * 0.75; // grobe Näherung falls kein Ruhepuls verfügbar
+    const hrr = maxHr - restingApprox;
+    const zoneOf = hr => {
+      const p = (hr - restingApprox) / hrr;
+      return Math.max(1, Math.min(5, Math.ceil(p * 5)));
+    };
+
+    const now = new Date();
+    const sumLoad = (days) => withHr
+      .filter(a => (now - new Date(a.date)) / 86400000 <= days)
+      .reduce((s,a) => s + a.duration_min * zoneOf(a.avg_hr), 0);
+
+    const acute = sumLoad(7);
+    const chronic = sumLoad(28) / 4; // auf vergleichbare Wochenbasis bringen
+
+    if(chronic === 0){
+      pctEl.textContent = '—'; statusEl.textContent = 'Noch nicht genug Verlauf';
+      ringL.style.strokeDasharray = RING_CIRC; ringL.style.strokeDashoffset = RING_CIRC; ringL.style.stroke = 'var(--track)';
+      return;
+    }
+
+    const ratio = acute / chronic;
+    pctEl.textContent = ratio.toFixed(2);
+    let label;
+    if(ratio < 0.8) label = 'Belastung sinkt';
+    else if(ratio <= 1.3) label = 'Im optimalen Bereich';
+    else label = 'Erhöhtes Risiko';
+    statusEl.textContent = `${label} · akut ${Math.round(acute)} / chron. ${Math.round(chronic)}`;
+    setRing(ringL, ratio, 2.0, 'var(--pink)');
+  }
+
+  function renderActivities(activities){
+    activities = (activities || []).slice().sort((a,b) => new Date(b.date) - new Date(a.date));
+    if(activities.length){
+      const a = activities[0];
+      document.getElementById('la-name').textContent = a.name || 'Aktivität';
+      document.getElementById('la-distance').textContent = a.distance_km ? a.distance_km.toFixed(1) + ' km' : '—';
+      const pace = (a.distance_km && a.duration_min) ? (a.duration_min / a.distance_km) : null;
+      document.getElementById('la-pace').textContent = pace ? `${Math.floor(pace)}:${String(Math.round((pace % 1) * 60)).padStart(2,'0')} /km` : '—';
+      document.getElementById('la-elevation').textContent = a.elevation_gain_m != null ? Math.round(a.elevation_gain_m) + ' m' : '—';
+      document.getElementById('la-hr').textContent = a.avg_hr ? a.avg_hr + ' bpm' : '—';
+    }
+    const now = new Date();
+    const startOfWeek = new Date(now); startOfWeek.setDate(now.getDate() - now.getDay() + 1); startOfWeek.setHours(0,0,0,0);
+    const weekKm = activities.filter(a => new Date(a.date) >= startOfWeek).reduce((s,a) => s + (a.distance_km || 0), 0);
+    document.getElementById('hero-total').textContent = weekKm.toFixed(1);
+    drawRidge(activities);
+
+    const list = document.getElementById('activity-list');
+    if(!activities.length){ list.innerHTML = '<div class="empty-state">Noch keine Aktivitäten synchronisiert.</div>'; return; }
+    list.innerHTML = activities.slice(0, 12).map(a => {
+      const d = a.date ? new Date(a.date) : null;
+      const dateStr = d ? d.toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit' }) : '—';
+      return `
+        <div class="activity-row">
+          <span class="date">${dateStr}</span>
+          <span class="name">${a.name || 'Aktivität'}</span>
+          <span class="type">${(a.type || '').replace(/_/g,' ')}</span>
+          <span class="metric">${a.distance_km ? a.distance_km.toFixed(1) + ' km' : (a.duration_min ? a.duration_min + ' min' : '')}</span>
+          <span class="metric">${a.avg_hr ? a.avg_hr + ' bpm' : ''}</span>
+        </div>`;
+    }).join('');
+  }
+
+  function drawRidge(activities){
+    const svg = document.getElementById('ridge');
+    const now = new Date();
+    const weeks = [];
+    for(let i = 7; i >= 0; i--){
+      const end = new Date(now); end.setDate(now.getDate() - i*7);
+      const start = new Date(end); start.setDate(end.getDate() - 7);
+      const km = activities.filter(a => { const d = new Date(a.date); return d > start && d <= end; })
+        .reduce((s,a) => s + (a.distance_km || 0), 0);
+      weeks.push(km);
+    }
+    const max = Math.max(...weeks, 1);
+    const w = 1000, h = 118, step = w / (weeks.length - 1);
+    const pts = weeks.map((km, i) => [i * step, h - (km / max) * (h - 18) - 6]);
+    let path = `M0,${h} L${pts[0][0]},${pts[0][1]} `;
+    for(let i = 1; i < pts.length; i++){
+      const [x0,y0] = pts[i-1], [x1,y1] = pts[i];
+      const mx = (x0+x1)/2;
+      path += `Q${x0},${y0} ${mx},${(y0+y1)/2} `;
+    }
+    path += `L${pts[pts.length-1][0]},${pts[pts.length-1][1]} L${w},${h} Z`;
+    svg.innerHTML = `
+      <defs>
+        <linearGradient id="ridgeFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ff4f9a" stop-opacity="0.30"/>
+          <stop offset="100%" stop-color="#ff4f9a" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d="${path}" fill="url(#ridgeFill)" stroke="#ff4f9a" stroke-width="2.5"/>
+    `;
+  }
+
+  (function init(){
+    const owner = localStorage.getItem(LS_KEYS.owner);
+    const repo = localStorage.getItem(LS_KEYS.repo);
+    const token = localStorage.getItem(LS_KEYS.token);
+    if(owner && repo && token){
+      document.getElementById('owner').value = owner;
+      document.getElementById('repo').value = repo;
+      showDashboard();
+    }
+  })();
+</script>
+</body>
+</html>
